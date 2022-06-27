@@ -29,7 +29,7 @@ RUN apt-get update \
     && apt-get autoremove
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip wheel --no-cache-dir --no-deps --wheel-dir /wheels nibabel pandas numpy scipy matplotlib gspread dbfread rpy2 selenium \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /wheels nibabel pandas numpy scipy matplotlib gspread dbfread sklearn rpy2 selenium \
     && rm -rf /root/.cache
 
 FROM python:3.10-slim-bullseye
@@ -48,6 +48,8 @@ ENV HOP_FILE_PATH=
 ENV HOP_LOG_PATH=$DEPLOYMENT_PATH/hop.err.log
 # path to jdbc drivers
 ENV HOP_SHARED_JDBC_FOLDER=
+# path to plugins folder
+ENV HOP_PLUGIN_BASE_FOLDERS="plugins"
 # name of the Hop project to use
 ENV HOP_PROJECT_NAME=project1
 # path to the home of the Hop project..
