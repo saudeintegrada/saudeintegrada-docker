@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 FROM python:3.10-slim-bullseye
 LABEL maintainer="Secretaria Municipal de Saúde de Foz do Iguaçu"
 # path to where the artifacts should be deployed to
-ENV DEPLOYMENT_PATH=/opt/hop
+ENV DEPLOYMENT_PATH=/opt
 # volume mount point
 ENV VOLUME_MOUNT_POINT=/files
 # parent directory in which the hop config artifacts live
@@ -94,6 +94,10 @@ ENV HOP_SERVER_MAX_LOG_LINES=
 ENV HOP_SERVER_MAX_LOG_TIMEOUT=
 ENV HOP_SERVER_MAX_OBJECT_TIMEOUT=
 
+# Define timezone
+ENV TZ=America/Sao_Paulo
+
+
 # Define en_US.
 # ENV LANGUAGE en_US.UTF-8
 # ENV LANG en_US.UTF-8
@@ -141,6 +145,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY --chown=hop:hop ./assemblies/client/target/hop/ ${DEPLOYMENT_PATH}/hop
 COPY --chown=hop:hop ./docker/resources/run.sh ${DEPLOYMENT_PATH}/run.sh
 COPY --chown=hop:hop ./docker/resources/load-and-execute.sh ${DEPLOYMENT_PATH}/load-and-execute.sh
+
+# Change container timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # expose 8080 for Hop Server
 EXPOSE 8080
