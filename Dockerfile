@@ -15,27 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM python:3.10-slim-bullseye as builder
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    r-base \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean \
-    && apt-get autoclean \
-    && apt-get autoremove
-
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip wheel --no-cache-dir --no-deps --wheel-dir /wheels nibabel pandas numpy scipy matplotlib gspread dbfread sklearn rpy2 selenium \
-    && rm -rf /root/.cache
-
 FROM python:3.10-slim-bullseye
 LABEL maintainer="Secretaria Municipal de Saúde de Foz do Iguaçu"
 # path to where the artifacts should be deployed to
-ENV DEPLOYMENT_PATH=/opt
+ENV DEPLOYMENT_PATH=/opt/hop
 # volume mount point
 ENV VOLUME_MOUNT_POINT=/files
 # parent directory in which the hop config artifacts live
@@ -97,7 +80,6 @@ ENV HOP_SERVER_MAX_OBJECT_TIMEOUT=
 # Define timezone
 ENV TZ=America/Sao_Paulo
 
-
 # Define en_US.
 # ENV LANGUAGE en_US.UTF-8
 # ENV LANG en_US.UTF-8
@@ -113,32 +95,42 @@ RUN sed -r -i 's/^deb(.*)$/deb\1 contrib/g' /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     openjdk-11-jre \
+    libxml2-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
     curl \
     procps \
     r-base \
+    littler \
+    r-cran-docopt \
+    r-cran-littler \
+    r-base \
+    r-base-dev \
+    r-base-core \
     ttf-mscorefonts-installer \
     fontconfig \
     && fc-cache -f \
     && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     && apt-get clean \
     && apt-get autoclean \
-    && apt-get autoremove
+    && apt-get autoremove \
+    && ln -s /usr/lib/R/site-library/littler/examples/install2.r /usr/local/bin/install2.r
 
-RUN R -e "install.packages('EpiEstim')"
+RUN install2.r --error --deps TRUE EpiEstim
 
 # INSTALL REQUIRED PACKAGES AND ADJUST LOCALE
 # procps: The package includes the programs ps, top, vmstat, w, kill, free, slabtop, and skill
 
-RUN mkdir ${DEPLOYMENT_PATH} \
-  && mkdir ${VOLUME_MOUNT_POINT} \
+RUN mkdir -p ${DEPLOYMENT_PATH} \
+  && mkdir -p ${VOLUME_MOUNT_POINT} \
   && addgroup hop \
   && useradd --gid hop --shell /bin/bash --home-dir /home/hop hop \
   && chown hop:hop ${DEPLOYMENT_PATH} \
   && chown hop:hop ${VOLUME_MOUNT_POINT}
 
-COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache /wheels/* \
+    && pip install --no-cache-dir nibabel pandas numpy scipy matplotlib gspread dbfread sklearn rpy2 selenium \
     && rm -rf /root/.cache
 
 # copy the hop package from the local resources folder to the container image directory
