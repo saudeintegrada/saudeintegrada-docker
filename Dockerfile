@@ -129,8 +129,8 @@ RUN mkdir -p ${DEPLOYMENT_PATH} \
   && chown hop:hop ${DEPLOYMENT_PATH} \
   && chown hop:hop ${VOLUME_MOUNT_POINT}
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir nibabel pandas numpy scipy matplotlib gspread dbfread sklearn rpy2 selenium \
+RUN pip3 install --no-cache-dir --upgrade pip \
+    && pip3 install --no-cache-dir nibabel pandas numpy scipy matplotlib gspread dbfread scikit-learn rpy2 selenium \
     && rm -rf /root/.cache
 
 # copy the hop package from the local resources folder to the container image directory
